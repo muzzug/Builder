@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escape Adventure Builder</title>
+<style>
+:root{--ink:#1d2433;--mut:#5b6575;--line:#d9dee6;--bg:#f5f6f8;--acc:#1f5fa8;--ok:#1e7b48;--warn:#a86b00;--bad:#b3261e}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg);font-size:15px;line-height:1.45}
+header.top{background:#fff;border-bottom:1px solid var(--line);padding:12px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+header.top h1{font-size:19px;margin:0;font-weight:700}
+header.top .sp{flex:1}
+.saved{font-size:12px;color:var(--mut)}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:#fff;padding:7px 13px;color:var(--ink)}
+button:hover{border-color:#aab3c0}
+button.pri{background:var(--acc);color:#fff;border-color:var(--acc)}
+button.pri:hover{background:#174c87}
+button.sm{padding:4px 9px;font-size:13px}
+button.del{color:var(--bad)}
+.layout{display:grid;grid-template-columns:230px 1fr;gap:0;min-height:calc(100vh - 58px)}
+nav.steps{background:#fff;border-right:1px solid var(--line);padding:16px 10px}
+nav.steps button{display:flex;width:100%;text-align:left;border:0;background:transparent;padding:9px 10px;border-radius:8px;gap:10px;align-items:center;margin-bottom:2px}
+nav.steps button .n{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none}
+nav.steps button.on{background:#e8f0fa;font-weight:700}
+nav.steps button.on .n{background:var(--acc);border-color:var(--acc);color:#fff}
+main{padding:24px 32px 60px;max-width:980px}
+h2{margin:0 0 4px;font-size:24px}
+.lead{color:var(--mut);margin:0 0 20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:16px}
+.card h3{margin:0 0 10px;font-size:16px}
+label.f{display:block;font-weight:600;font-size:13.5px;margin:12px 0 4px}
+label.f:first-child{margin-top:0}
+.help{font-weight:400;color:var(--mut);font-size:12.5px}
+input[type=text],input[type=number],textarea,select{width:100%;font:inherit;padding:8px 10px;border:1px solid #c7ced8;border-radius:8px;background:#fff;color:var(--ink)}
+textarea{min-height:80px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:2px solid #b8d0ec;border-color:var(--acc)}
+.row{display:grid;gap:12px}
+.r2{grid-template-columns:1fr 1fr}.r3{grid-template-columns:1fr 1fr 1fr}.r4{grid-template-columns:repeat(4,1fr)}
+.concepts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.concept{border:2px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;background:#fff}
+.concept.on{border-color:var(--acc);background:#f2f7fd}
+.concept b{display:block;font-size:15.5px;margin-bottom:4px}
+.concept span{font-size:13px;color:var(--mut)}
+.teamrow{display:grid;grid-template-columns:150px repeat(5,1fr) 34px;gap:6px;margin-bottom:6px;align-items:center}
+.mhead{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.mhead h3{margin:0;flex:1}
+.tip{background:#f2f7fd;border-left:4px solid var(--acc);padding:8px 12px;border-radius:6px;font-size:13px;margin:8px 0}
+.nav2{display:flex;justify-content:space-between;margin-top:18px}
+.chk li{margin-bottom:6px}
+.chk .ok{color:var(--ok)}.chk .warn{color:var(--warn)}.chk .bad{color:var(--bad)}
+.big{font-size:16px;padding:11px 18px}
+.out{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.mini{font-size:12.5px;color:var(--mut)}
+table.sum{border-collapse:collapse;width:100%;font-size:14px}
+table.sum td,table.sum th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.hidden{display:none!important}
+#print{display:none}
+@media (max-width:820px){.layout{grid-template-columns:1fr}nav.steps{display:flex;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line)}nav.steps button{width:auto;white-space:nowrap}.r2,.r3,.r4,.concepts,.out{grid-template-columns:1fr}.teamrow{grid-template-columns:1fr 1fr}main{padding:18px}}
+
+/* ---------- PRINT PACK ---------- */
+@media print{
+  @page{size:A4;margin:14mm}
+  body{background:#fff;font-size:11pt}
+  .app{display:none!important}
+  #print{display:block!important}
+}
+#print{font-family:Georgia,"Times New Roman",serif;color:#000}
+#print .pg{break-after:page;page-break-after:always}
+#print .pg:last-child{break-after:auto}
+#print h1{font-size:24pt;margin:0 0 4mm}
+#print h2{font-size:17pt;margin:0 0 3mm;border-bottom:1.5px solid #000;padding-bottom:2mm}
+#print h3{font-size:12.5pt;margin:5mm 0 2mm}
+#print .k{font-family:Arial,sans-serif;font-size:8.5pt;text-transform:uppercase;letter-spacing:.1em;margin-bottom:1mm}
+#print p{margin:0 0 2.5mm}
+#print table{border-collapse:collapse;width:100%;margin:2mm 0 4mm;font-size:10pt}
+#print td,#print th{border:1px solid #555;padding:1.8mm 2mm;text-align:left;vertical-align:top}
+#print th{background:#eee}
+#print .grid{display:grid;border-top:1px dashed #777;border-left:1px dashed #777}
+#print .grid>div{border-right:1px dashed #777;border-bottom:1px dashed #777;padding:4mm;min-height:28mm;break-inside:avoid}
+#print .g2{grid-template-columns:1fr 1fr}#print .g3{grid-template-columns:repeat(3,1fr)}#print .g4{grid-template-columns:repeat(4,1fr)}#print .g5{grid-template-columns:repeat(5,1fr)}
+#print .word{display:flex;align-items:center;justify-content:center;text-align:center;font-size:16pt;font-weight:bold;min-height:30mm!important}
+#print .cardt{font-family:Arial,sans-serif;font-size:7.5pt;text-transform:uppercase;letter-spacing:.08em;margin-bottom:1.5mm}
+#print .prob{display:grid;grid-template-columns:9mm 1fr 30mm;gap:3mm;align-items:center;border:1px solid #888;padding:3mm;margin-bottom:3mm;font-size:13pt}
+#print .prob .ab{height:16mm;border:1.5px dashed #777}
+#print .codes{display:flex;gap:3mm;align-items:center;margin:6mm 0 3mm;font-weight:bold;font-size:12pt}
+#print .codes .b{width:14mm;height:17mm;border:2px solid #000}
+#print .letter{font-size:14pt;line-height:1.6}
+#print .keyg{display:grid;grid-template-columns:repeat(13,1fr);border-top:1px solid #000;border-left:1px solid #000;margin:3mm 0 7mm}
+#print .keyg div{border-right:1px solid #000;border-bottom:1px solid #000;text-align:center;padding:1mm 0;font-size:10pt}
+#print .cw{display:inline-flex;gap:1.5mm;margin:0 6mm 7mm 0}
+#print .cc{text-align:center;font-weight:bold}
+#print .cc i{display:block;width:10mm;height:12mm;border-bottom:2px solid #000;margin-top:1mm}
+#print .cert{border:3px double #000;padding:12mm;text-align:center;height:120mm;display:flex;flex-direction:column;justify-content:center;margin-bottom:10mm}
+#print .cert h1{font-size:26pt}
+#print .line{border-bottom:1px solid #000;width:110mm;margin:5mm auto;height:8mm}
+#print .content p{font-size:12.5pt}
+#print .small{font-size:9.5pt}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+  <h1>Escape Adventure Builder</h1>
+  <span class="saved" id="saved"></span>
+  <span class="sp"></span>
+  <button id="bNew">New</button>
+  <button id="bExample">Load example</button>
+  <button id="bOpen">Open file…</button>
+  <button id="bSave" class="pri">Save to file</button>
+  <input type="file" id="fileIn" accept=".json,application/json" class="hidden">
+</header>
+<div class="layout">
+  <nav class="steps" id="steps"></nav>
+  <main id="main"></main>
+</div>
+</div>
+<div id="print"></div>
+
+<script>
+/* =========================================================================
+   Escape Adventure Builder: a step-by-step planner for classroom escape games.
+   Everything runs in this file. Work is kept in this browser automatically,
+   and "Save to file" stores a copy you can open again anywhere.
+   ========================================================================= */
+
+const CONCEPTS = {
+  escape:  {name:"Escape", goal:"Open the final lock", desc:"A villain has locked the class in (or frozen, stolen or locked away something precious). Teams solve missions to get the codes and escape before time runs out.", finalLabel:"Final code (opens the prize box)"},
+  mystery: {name:"Mystery", goal:"Name the culprit", desc:"Something has happened. Correct answers unlock clues and witness statements that rule out suspects, until only one is left: who did it?", finalLabel:"The culprit's name"},
+  hero:    {name:"Hero", goal:"Rescue someone", desc:"Students are secret agents. The story arrives in pieces (messages, calls, photos), and each piece has a problem that must be solved to save the day.", finalLabel:"Final answer (completes the rescue)"},
+  treasure:{name:"Treasure Hunt", goal:"Find the treasure", desc:"A pirate hid treasure. Maps, coordinates, eyewitnesses and booby traps lead teams to a real place in the room.", finalLabel:"Final location or code"}
+};
+
+const TYPES = {
+  digit:   {name:"Answer = digit", tip:"Write one problem per line. Each answer is one digit of the code, in order. Tip: make an easier and a harder version that give the same answers.", contentLabel:"Problems (one per line)", hasProblems:true},
+  match:   {name:"Match → letter", tip:"Put the facts or questions in the sheet content (one per line). Put the answer cards in 'Cards', each with its letter, e.g. 'Poland (C)'. Add 3–4 decoy cards.", contentLabel:"Facts / questions (one per line, they get numbered)"},
+  sort:    {name:"Sort and count", tip:"Put the categories in the sheet content, and the items in 'Cards'. The number of items in each category gives the code.", contentLabel:"Categories (one per line)"},
+  cipher:  {name:"Number cipher (A=1, B=2…)", tip:"Type the secret message. The sheet will show it as numbers with boxes underneath, plus the key. Letters and spaces only.", contentLabel:"Secret message"},
+  order:   {name:"Put in order", tip:"Put the items on 'Cards', each with a letter. In the correct order, the letters spell the code.", contentLabel:"Instructions or extra info (optional)"},
+  odd:     {name:"Odd one out", tip:"One group per line. The odd one out in each group carries a letter or digit of the code.", contentLabel:"Groups (one per line)"},
+  hidden:  {name:"Hidden in the room", tip:"The clue sends teams to a real place. Write the clue or riddle here. Remember to hide something there!", contentLabel:"Clue / riddle"},
+  combo:   {name:"Combination riddle", tip:"Ideal for the final lock. Each line is one part of the code, built from earlier answers, e.g. 'Digit 1: the first digit of your Mission 1 code'.", contentLabel:"Riddle lines (one per line)"},
+  clue:    {name:"Mystery clue", tip:"Answers unlock a clue that rules out suspects. Put the questions here and write the clue the team receives in 'What the team gets when correct'.", contentLabel:"Questions (one per line)"},
+  map:     {name:"Map / coordinates", tip:"Each answer is a coordinate or a direction (e.g. B4, 'go 2 north'). Draw or print a grid map separately.", contentLabel:"Questions or directions (one per line)"},
+  other:   {name:"Other / free text", tip:"Anything you like. Each line becomes a paragraph on the student sheet.", contentLabel:"Sheet content"}
+};
+
+const STEPS = [
+  ["basics","Basics"],["story","Story"],["teams","Teams"],["missions","Missions"],["extras","Hints & extras"],["check","Check"],["output","Print & export"]
+];
+
+const COLORS = ["#2e86c1","#c0392b","#1e8449","#d4a017","#8e44ad","#e67e22","#16a085","#7f8c8d"];
+
+function blankMission(i){ return {name:"Mission "+(i+1), type:"digit", intro:"", content:"", cards:"", code:"", solution:"", hint1:"", hint2:"", reward:""}; }
+
+function blankGame(){
+  return {
+    concept:"escape", title:"", age:"7–11", duration:45, className:"the brave students of this class", prize:"",
+    villain:"", stakes:"", letter:"", signoff:"",
+    teamRule:"Find the people whose words mean the same as yours!",
+    teams:[{name:"Team 1",words:["","","","",""]},{name:"Team 2",words:["","","","",""]},{name:"Team 3",words:["","","","",""]},{name:"Team 4",words:["","","","",""]}],
+    missions:[blankMission(0),blankMission(1),blankMission(2),Object.assign(blankMission(3),{name:"Final lock",type:"combo"})],
+    hintsPerTeam:3,
+    forfeits:"Do 10 star jumps together.\nFreeze like statues for 20 seconds. No laughing!\nSing a chorus together.\nWaddle like penguins across the room and back.\nSay a phrase in 3 different languages.\nMake a shape with your whole team.\nTell the teacher a joke.\nSpell a long word backwards, out loud, as a team.",
+    challengesOn:false,
+    challenges:"Build the tallest tower from 10 sheets of paper in 2 minutes (no tape).\nLine up in order of your birthdays without speaking.\nName 10 animals in 30 seconds.",
+    sabotages:"Freeze | Choose a team: they freeze for 30 seconds\nSilence | Choose a team: no talking for 1 minute\nOther hand | Choose a team: write with the other hand for 2 minutes\nSeat swap | Choose a team: everyone moves one seat clockwise\nHint steal | Take one hint token from another team\nShield | Cancel one sabotage played on your team\nBonus hint | Your team gets one extra hint token\nTime bonus | Take 1 minute off your team's final time"
+  };
+}
+
+const EXAMPLE = {
+  concept:"escape", title:"The Great Christmas Freeze", age:"7–11", duration:45, className:"the brave students of this class", prize:"Christmas treats for everyone and the Escape certificates",
+  villain:"Baron Blizzard", stakes:"If the class doesn't open the Ice Box in 45 minutes, the party stays frozen until next summer.",
+  letter:"Ha! Ho! Brrrr!\nI am Baron Blizzard, and I HATE Christmas. All that singing, all that glitter, all those cosy cups of hot chocolate. Yuck!\nSo I have frozen your Christmas party solid. Every present, every sweet, every single cracker is locked in my Ice Box, and only my secret code can open it.\nI have hidden my code inside four frozen missions. Maths! Countries! Words! Secret messages! You will never solve them. Children are far too silly, too noisy and too slow.\nYou have 45 minutes. When the clock reaches zero, your party stays frozen until next summer. Ha!\nP.S. If you bring my elves a wrong code, you will be FROZEN too, and you'll have to do something very embarrassing before you can try again.",
+  signoff:"Coldly yours,",
+  teamRule:"Find the people whose words mean the same as yours!",
+  teams:[
+    {name:"Team Icicle",words:["cold","chilly","icy","freezing","frosty"]},
+    {name:"Team Jingle",words:["happy","joyful","cheerful","merry","glad"]},
+    {name:"Team Giant",words:["big","huge","giant","enormous","massive"]},
+    {name:"Team Sleigh",words:["fast","quick","rapid","speedy","swift"]},
+    {name:"Team Snowflake",words:["small","tiny","little","mini","teeny"]},
+    {name:"Team Tinsel",words:["shiny","sparkly","glittering","bright","gleaming"]}],
+  missions:[
+    {name:"Frozen Maths",type:"digit",intro:"The Baron froze four numbers inside his snowballs. Solve each problem, and every answer is ONE digit of your code.",
+     content:"Elf Eddie has 4 bags. There are 2 candy canes in each bag. How many candy canes does he have?\nThere were 10 cookies for Santa. He ate 3 of them. How many cookies are left?\n15 snowmen were in the park. 10 of them melted. How many snowmen are still there?\n4 reindeer are pulling the sleigh. Half of them go home to sleep. How many are still pulling?",
+     cards:"",code:"8752",solution:"Answers in order: 8, 7, 5, 2",hint1:"Solve the problems in order. Problem 1 is the FIRST digit of your code.",hint2:"Your code starts with 8. Check problems 2, 3 and 4 again.",reward:"Collect Envelope 2 from the Checkpoint!"},
+    {name:"Christmas Around the World",type:"match",intro:"The Baron mixed up how children celebrate around the world. Match each fact to the right country. Read the letters in fact order.",
+     content:"Families wait for the first star in the sky before Christmas Eve dinner. There are often 12 dishes, and an empty place at the table for an unexpected guest.\nChristmas comes in summer here! Many families have a picnic or a barbecue on the beach.\nFor nine nights before Christmas, people act out Mary and Joseph looking for a place to stay. It is called Las Posadas, and children break piñatas.\nA kind old witch called La Befana flies on her broom and brings presents to children on the night of 5 January.\nPeople hang bright, star-shaped lanterns called parols in their windows and along the streets.",
+     cards:"Japan (S)\nPoland (C)\nSweden (T)\nMexico (N)\nAustralia (A)\nthe Netherlands (O)\nItaly (D)\nthe United Kingdom (E)\nthe Philippines (Y)",
+     code:"CANDY",solution:"1 Poland C, 2 Australia A, 3 Mexico N, 4 Italy D, 5 Philippines Y. Decoys: Japan, Sweden, Netherlands, UK",hint1:"Fact 1 is about the country where your school is!",hint2:"The word is something sweet you might find on a Christmas tree.",reward:"Collect Envelope 3 from the Checkpoint!"},
+    {name:"The Reindeer Word Sort",type:"sort",intro:"Sort every word card into the right group. Then count each group: nouns, verbs, adjectives.",
+     content:"NOUNS (a person, place or thing)\nVERBS (a doing word)\nADJECTIVES (a describing word)",
+     cards:"sleigh\nwrap\nsparkly\nchimney\nsing\nstocking\ncosy\ndecorate\nreindeer\njolly\nbake\nsnowman",
+     code:"543",solution:"Nouns 5, verbs 4, adjectives 3",hint1:"'I can ___' means it's a verb. 'It is very ___' means it's an adjective.",hint2:"There are more nouns than verbs, and more verbs than adjectives.",reward:"Collect Envelope 4. Crack the Baron's secret message and find the golden envelope!"},
+    {name:"The Baron's Secret Message",type:"cipher",intro:"The Baron hid the golden envelope somewhere in this room. Use the key to crack his message. Take ONE golden envelope only.",
+     content:"Look behind the door",cards:"",code:"",solution:"Golden envelopes hidden behind the door",hint1:"A is 1, B is 2, C is 3… Write the letter under each number.",hint2:"The first word is LOOK.",reward:""},
+    {name:"Final lock",type:"combo",intro:"So, you found my golden envelope. Grrr! But my Ice Box has ONE more lock.",
+     content:"Digit 1: the FIRST digit of your Frozen Maths code.\nDigit 2: how many countries you did NOT use in Christmas Around the World.\nDigit 3: the LAST digit of your Reindeer Word Sort code.",
+     cards:"",code:"843",solution:"8 (Mission 1), 4 decoy countries, 3 (Mission 3)",hint1:"Look back at your mission log, where you wrote all your codes.",hint2:"You used 5 of the 9 country cards. How many were left over?",reward:""}
+  ],
+  hintsPerTeam:3,
+  forfeits:"Do 10 reindeer jumps together.\nFreeze like snowmen for 20 seconds. No laughing!\nSing the chorus of 'Jingle Bells' together.\nWaddle like penguins across the room and back.\nSay 'Merry Christmas' in 3 different languages.\nMake a Christmas tree shape with your whole team.\nTell the Checkpoint Elf a winter joke.\nSpell CHRISTMAS backwards, out loud, as a team.",
+  challengesOn:true,
+  challenges:"Build the tallest snowman from 10 sheets of paper in 2 minutes (no tape).\nLine up in order of your birthdays, January to December, without speaking.\nName 10 things that are white in 30 seconds.\nPass a candy cane (or pencil) along the whole team using only your elbows.\nDraw Baron Blizzard in 60 seconds with your eyes closed.",
+  sabotages:"Snowstorm | Choose a team: they freeze for 30 seconds\nFrozen Lips | Choose a team: no talking for 1 minute\nIcy Fingers | Choose a team: write with the other hand for 2 minutes\nAvalanche | Choose a team: everyone moves one seat clockwise\nSnowball Steal | Take one hint token from another team\nHot Chocolate | Shield: cancel one Blizzard card played on your team\nElf Helper | Your team gets one extra hint token\nReindeer Rocket | Take 1 minute off your team's final time"
+};
+
+/* ---------- state ---------- */
+const KEY = "escape-adventure-builder-v1";
+let G = load() || blankGame();
+let step = 0;
+function load(){ try{ const s=localStorage.getItem(KEY); return s?JSON.parse(s):null; }catch(e){ return null; } }
+let saveT=null;
+function save(){ clearTimeout(saveT); saveT=setTimeout(()=>{ try{ localStorage.setItem(KEY, JSON.stringify(G)); $("#saved").textContent="Saved in this browser · "+new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}); }catch(e){ $("#saved").textContent="Not saved in browser: use Save to file"; } }, 300); }
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const lines = s=>String(s||"").split("\n").map(x=>x.trim()).filter(Boolean);
+const norm = c=>String(c||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+
+/* ---------- generic field binding ---------- */
+function bind(root){
+  root.querySelectorAll("[data-k]").forEach(el=>{
+    const path = el.dataset.k;
+    const v = getP(path);
+    if(el.type==="checkbox") el.checked=!!v; else el.value = v ?? "";
+    el.addEventListener(el.tagName==="SELECT"||el.type==="checkbox"?"change":"input", ()=>{
+      setP(path, el.type==="checkbox"?el.checked:(el.type==="number"?+el.value:el.value));
+      save();
+      if(el.dataset.rerender) render();
+    });
+  });
+}
+function getP(p){ return p.split(".").reduce((o,k)=>o==null?o:o[k], G); }
+function setP(p,v){ const ks=p.split("."); const last=ks.pop(); const o=ks.reduce((o,k)=>o[k],G); o[last]=v; }
+
+function field(label, key, opts={}){
+  const help = opts.help?` <span class="help">${opts.help}</span>`:"";
+  let inp;
+  if(opts.area) inp=`<textarea data-k="${key}" placeholder="${esc(opts.ph||"")}" style="min-height:${opts.h||80}px"></textarea>`;
+  else if(opts.select) inp=`<select data-k="${key}" ${opts.rerender?'data-rerender="1"':''}>${opts.select.map(([v,t])=>`<option value="${v}">${esc(t)}</option>`).join("")}</select>`;
+  else inp=`<input type="${opts.num?"number":"text"}" data-k="${key}" placeholder="${esc(opts.ph||"")}" ${opts.rerender?'data-rerender="1"':''}>`;
+  return `<div><label class="f">${label}${help}</label>${inp}</div>`;
+}
+
+/* ---------- render ---------- */
+function render(){
+  $("#steps").innerHTML = STEPS.map(([id,t],i)=>`<button class="${i===step?'on':''}" data-s="${i}"><span class="n">${i+1}</span>${t}</button>`).join("");
+  document.querySelectorAll("#steps button").forEach(b=>b.onclick=()=>{ step=+b.dataset.s; render(); scrollTo(0,0); });
+  const id = STEPS[step][0];
+  $("#main").innerHTML = VIEWS[id]() + navButtons();
+  bind($("#main"));
+  if(AFTER[id]) AFTER[id]();
+  document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{ step+= +b.dataset.go; render(); scrollTo(0,0); });
+}
+function navButtons(){
+  return `<div class="nav2">${step>0?`<button data-go="-1">← Back</button>`:'<span></span>'}${step<STEPS.length-1?`<button class="pri" data-go="1">Next: ${STEPS[step+1][1]} →</button>`:''}</div>`;
+}
+
+const VIEWS = {
+basics(){
+  return `<h2>1. Basics</h2><p class="lead">Choose the kind of adventure and the essentials.</p>
+  <div class="card"><h3>Concept</h3><div class="concepts">${Object.entries(CONCEPTS).map(([k,c])=>`<div class="concept ${G.concept===k?'on':''}" data-c="${k}"><b>${c.name}</b><span><b style="display:inline;font-size:13px">Goal:</b> ${c.goal}. ${c.desc}</span></div>`).join("")}</div></div>
+  <div class="card"><div class="row r2">
+    ${field("Title","title",{ph:"e.g. The Great Christmas Freeze"})}
+    ${field("Who is the letter for?","className",{help:"(appears on the villain letter)"})}
+  </div><div class="row r3">
+    ${field("Age","age",{ph:"7–11"})}
+    ${field("Length (minutes)","duration",{num:true})}
+    ${field("Hint tokens per team","hintsPerTeam",{num:true})}
+  </div>
+  ${field("Prize","prize",{ph:"e.g. treats for everyone and certificates"})}</div>`;
+},
+story(){
+  const c=CONCEPTS[G.concept];
+  return `<h2>2. Story</h2><p class="lead">Who is behind it, and what is at stake? Keep it short and funny.</p>
+  <div class="card"><div class="row r2">
+    ${field(G.concept==="hero"?"Villain (or who needs rescuing)":G.concept==="treasure"?"Pirate / treasure owner":G.concept==="mystery"?"Helper or narrator":"Villain","villain",{ph:"e.g. Baron Blizzard"})}
+    ${field("Sign-off","signoff",{ph:"e.g. Coldly yours,"})}
+  </div>
+  ${field("What is at stake?","stakes",{ph:"If we don't … in 45 minutes, then …",help:"(for your teacher guide)"})}
+  ${field("Letter to read aloud","letter",{area:true,h:220,help:"One paragraph per line. Tip: greeting · who I am · what I did · 'you'll never solve my missions' · time limit · P.S. warning about forfeits",ph:"Ha! Ho! Brrrr!\nI am …"})}
+  <div class="tip">Concept: <b>${c.name}</b>. Goal: ${c.goal.toLowerCase()}.</div></div>`;
+},
+teams(){
+  return `<h2>3. Teams</h2><p class="lead">Each student gets a word card and finds the classmates whose word fits theirs (synonyms, antonyms, a word and its picture, a sum and its answer…). Teams of 4–5 work best.</p>
+  <div class="card">${field("Instruction on each card","teamRule")}
+  <label class="f">Teams <span class="help">(leave a word empty for smaller teams)</span></label>
+  ${G.teams.map((t,i)=>`<div class="teamrow"><input type="text" data-k="teams.${i}.name" placeholder="Team name">${t.words.map((w,j)=>`<input type="text" data-k="teams.${i}.words.${j}" placeholder="word ${j+1}">`).join("")}<button class="sm del" data-delteam="${i}" title="Remove team">✕</button></div>`).join("")}
+  <button class="sm" id="addTeam" ${G.teams.length>=8?'disabled':''}>+ Add team</button> <span class="mini">${G.teams.length} teams, ${G.teams.reduce((a,t)=>a+t.words.filter(w=>w.trim()).length,0)} word cards</span></div>`;
+},
+missions(){
+  const c=CONCEPTS[G.concept];
+  return `<h2>4. Missions</h2><p class="lead">Each mission is one envelope. The last mission is the final step (${esc(c.finalLabel.toLowerCase())}). Leave "Code" empty for a mission that isn't checked (e.g. finding a hiding place).</p>
+  ${G.missions.map((m,i)=>{ const T=TYPES[m.type]||TYPES.other; const last=i===G.missions.length-1; return `<div class="card">
+    <div class="mhead"><h3>${last?'★ Final step':'Envelope '+(i+1)}: ${esc(m.name||"")}</h3>
+      <button class="sm" data-up="${i}" ${i===0?'disabled':''}>↑</button><button class="sm" data-down="${i}" ${last?'disabled':''}>↓</button><button class="sm del" data-delm="${i}">Remove</button></div>
+    <div class="row r2">${field("Mission name",`missions.${i}.name`)}${field("Puzzle type",`missions.${i}.type`,{select:Object.entries(TYPES).map(([k,t])=>[k,t.name]),rerender:true})}</div>
+    <div class="tip">${T.tip}</div>
+    ${field("Instructions for students",`missions.${i}.intro`,{area:true,h:60,ph:"One or two simple sentences."})}
+    ${field(T.contentLabel,`missions.${i}.content`,{area:true,h:110})}
+    ${field("Cards to cut out",`missions.${i}.cards`,{area:true,h:70,help:"(optional, one card per line)"})}
+    <div class="row r2">${field(last?c.finalLabel:"Code",`missions.${i}.code`,{ph:last&&G.concept==="mystery"?"e.g. The Reindeer":"e.g. 8752 or CANDY"})}${field("Answer explained (teacher only)",`missions.${i}.solution`)}</div>
+    <div class="row r2">${field("Hint 1 (gentle)",`missions.${i}.hint1`)}${field("Hint 2 (nearly gives it away)",`missions.${i}.hint2`)}</div>
+    ${last?"":field("What the team gets when correct",`missions.${i}.reward`,{ph:"e.g. Collect Envelope "+(i+2)+" from the Checkpoint!"})}
+  </div>`;}).join("")}
+  <button id="addM">+ Add mission</button> <span class="mini">New missions are added before the final step.</span>`;
+},
+extras(){
+  return `<h2>5. Hints & extras</h2><p class="lead">Forfeits for wrong codes, plus optional challenges and sabotages between teams.</p>
+  <div class="card">${field("Forfeits for a wrong code","forfeits",{area:true,h:170,help:"(one per line, printed as cards)"})}</div>
+  <div class="card"><label style="display:flex;gap:8px;align-items:center;font-weight:700"><input type="checkbox" data-k="challengesOn" data-rerender="1" style="width:auto"> Use challenges and sabotages</label>
+  <p class="mini">Short non-curriculum tasks for all teams at once (e.g. after Missions 1 and 3). The first team to finish wins a card. Rules: the teacher reads every card out, no team is hit twice in a row, the last-placed team is safe, and no sabotages in the last 5 minutes.</p>
+  <div class="${G.challengesOn?'':'hidden'}">
+  ${field("Challenges","challenges",{area:true,h:110,help:"(one per line)"})}
+  ${field("Reward cards","sabotages",{area:true,h:170,help:"(one per line: Name | Effect)"})}</div></div>`;
+},
+check(){
+  const items = checks();
+  const bad=items.filter(x=>x[0]==="bad").length, warn=items.filter(x=>x[0]==="warn").length;
+  const coded = G.missions.filter(m=>m.code.trim());
+  return `<h2>6. Check</h2><p class="lead">${bad?`${bad} thing(s) to fix`:"Looks good"}${warn?`, ${warn} suggestion(s)`:""}.</p>
+  <div class="card"><ul class="chk">${items.map(([k,t])=>`<li class="${k}">${k==="ok"?"✓":k==="warn"?"!":"✕"} ${t}</li>`).join("")}</ul></div>
+  <div class="card"><h3>Summary</h3><table class="sum"><tr><th>#</th><th>Mission</th><th>Type</th><th>Code</th><th>Hints</th></tr>
+  ${G.missions.map((m,i)=>`<tr><td>${i===G.missions.length-1?"★":i+1}</td><td>${esc(m.name)}</td><td>${esc((TYPES[m.type]||TYPES.other).name)}</td><td><b>${esc(m.code)||'<span class="mini">not checked</span>'}</b></td><td>${[m.hint1,m.hint2].filter(x=>x.trim()).length}/2</td></tr>`).join("")}</table>
+  <p class="mini" style="margin-top:10px">Estimated play time: about ${estTime()} minutes (5 to form teams and read the letter, ~8 per mission${G.challengesOn?", +6 for challenges":""}). Planned: ${G.duration} minutes. Checkpoint will check ${coded.length} code(s).</p></div>`;
+},
+output(){
+  return `<h2>7. Print & export</h2><p class="lead">Print the pack, and if you like, download the Checkpoint page for the board.</p>
+  <div class="out">
+   <div class="card"><h3>Printable pack</h3><p class="mini">Teacher guide, answer key, letter, team cards, one sheet per mission, cards to cut out, hint cards, forfeits${G.challengesOn?", challenges and reward cards":""}, envelope labels, mission log and certificates. Plain black and white.</p>
+   <p class="mini">In the print window choose <b>Save as PDF</b> or your printer. Paper A4.</p>
+   <button class="pri big" id="bPrint">Print pack…</button></div>
+   <div class="card"><h3>Checkpoint page (optional)</h3><p class="mini">A separate file to open on the board: countdown, team progress, code checking, random forfeits and hints. It works offline. Missions without a code are skipped, and their hints move to the next checked mission.</p>
+   <button class="pri big" id="bCheck">Download Checkpoint</button></div>
+  </div>
+  <div class="card"><h3>Keep your work</h3><p class="mini">Your work is kept in this browser automatically. Use <b>Save to file</b> (top right) to keep a copy, move it to another computer, or start a new game from an old one with <b>Open file…</b>.</p></div>`;
+}
+};
+
+const AFTER = {
+  basics(){ document.querySelectorAll(".concept").forEach(d=>d.onclick=()=>{ G.concept=d.dataset.c; save(); render(); }); },
+  teams(){
+    $("#addTeam").onclick=()=>{ G.teams.push({name:"Team "+(G.teams.length+1),words:["","","","",""]}); save(); render(); };
+    document.querySelectorAll("[data-delteam]").forEach(b=>b.onclick=()=>{ if(G.teams.length<=1) return; G.teams.splice(+b.dataset.delteam,1); save(); render(); });
+  },
+  missions(){
+    $("#addM").onclick=()=>{ G.missions.splice(G.missions.length-1,0,blankMission(G.missions.length-1)); save(); render(); };
+    document.querySelectorAll("[data-delm]").forEach(b=>b.onclick=()=>{ if(G.missions.length<=1) return; const i=+b.dataset.delm; if(!confirmInline(b)) return; G.missions.splice(i,1); save(); render(); });
+    document.querySelectorAll("[data-up]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.up; [G.missions[i-1],G.missions[i]]=[G.missions[i],G.missions[i-1]]; save(); render(); });
+    document.querySelectorAll("[data-down]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.down; [G.missions[i+1],G.missions[i]]=[G.missions[i],G.missions[i+1]]; save(); render(); });
+  },
+  output(){ $("#bPrint").onclick=printPack; $("#bCheck").onclick=exportCheckpoint; }
+};
+function confirmInline(b){ if(b.dataset.sure) return true; b.dataset.sure="1"; b.textContent="Click again to remove"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.sure; b.textContent="Remove"; } },3000); return false; }
+
+function estTime(){ return 5 + G.missions.length*8 + (G.challengesOn?6:0); }
+
+function checks(){
+  const out=[], c=CONCEPTS[G.concept];
+  if(!G.title.trim()) out.push(["bad","Give the game a title (step 1)."]); else out.push(["ok","Title: "+esc(G.title)]);
+  if(!lines(G.letter).length) out.push(["warn","The letter to read aloud is empty (step 2)."]); else out.push(["ok","Letter: "+lines(G.letter).length+" paragraphs"]);
+  const words = G.teams.flatMap(t=>t.words.map(w=>w.trim().toLowerCase()).filter(Boolean));
+  const dup = words.filter((w,i)=>words.indexOf(w)!==i);
+  if(G.teams.some(t=>t.words.filter(w=>w.trim()).length<2)) out.push(["warn","Some teams have fewer than 2 word cards (step 3)."]);
+  if(dup.length) out.push(["bad","The same word appears on more than one team card: "+esc([...new Set(dup)].join(", "))]);
+  if(!dup.length && words.length) out.push(["ok",G.teams.length+" teams, "+words.length+" word cards"]);
+  G.missions.forEach((m,i)=>{
+    const n = i===G.missions.length-1?"Final step":"Mission "+(i+1);
+    if(!m.name.trim()) out.push(["warn",n+" has no name."]);
+    if(!m.intro.trim()) out.push(["warn",n+": add instructions for students."]);
+    if(m.type!=="cipher" && !m.content.trim() && !m.cards.trim()) out.push(["bad",n+": the student sheet is empty (content or cards)."]);
+    if(m.type==="cipher" && /[^a-zA-Z\s]/.test(m.content)) out.push(["warn",n+": the cipher message should use letters and spaces only (other characters are left out)."]);
+    if(i===G.missions.length-1 && !m.code.trim()) out.push(["bad","The final step needs an answer: "+esc(c.finalLabel.toLowerCase())+"."]);
+    if(!m.hint1.trim()||!m.hint2.trim()) out.push(["warn",n+": write 2 hints."]);
+    if(m.type==="digit" && m.code.trim() && lines(m.content).length && norm(m.code).length!==lines(m.content).length) out.push(["warn",n+": the code has "+norm(m.code).length+" characters but there are "+lines(m.content).length+" problems."]);
+  });
+  const codes = G.missions.map(m=>norm(m.code)).filter(Boolean);
+  if(codes.some((c,i)=>codes.indexOf(c)!==i)) out.push(["warn","Two missions have the same code. Teams could skip ahead."]);
+  if(estTime() > G.duration+5) out.push(["warn","This may take about "+estTime()+" minutes, longer than the planned "+G.duration+". Consider removing a mission."]);
+  if(!G.prize.trim()) out.push(["warn","What's in the prize box? (step 1)"]);
+  if(!lines(G.forfeits).length) out.push(["warn","No forfeits for wrong codes (step 5)."]);
+  if(!out.some(x=>x[0]!=="ok")) out.push(["ok","Everything is filled in. Test it on a colleague before the lesson!"]);
+  return out;
+}
+
+/* ---------- printable pack ---------- */
+function codeBoxes(code, label){
+  const n = norm(code).length; if(!n) return "";
+  return `<div class="codes">${esc(label||"Your code:")} ${'<span class="b"></span>'.repeat(n)}</div>`;
+}
+function cipherHTML(msg){
+  const key = Array.from({length:26},(_,i)=>`<div><b>${String.fromCharCode(65+i)}</b><br>${i+1}</div>`).join("");
+  const words = msg.toUpperCase().replace(/[^A-Z\s]/g,"").split(/\s+/).filter(Boolean);
+  return `<div class="keyg">${key}</div><div>${words.map(w=>`<span class="cw">${[...w].map(ch=>`<span class="cc">${ch.charCodeAt(0)-64}<i></i></span>`).join("")}</span>`).join("")}</div>`;
+}
+function cardsGrid(items, cols, title){
+  if(!items.length) return "";
+  return `<div class="grid g${cols}">${items.map(t=>`<div>${title?`<div class="cardt">${esc(title)}</div>`:""}${t}</div>`).join("")}</div>`;
+}
+function page(inner){ return `<section class="pg">${inner}</section>`; }
+
+function buildPack(){
+  const c=CONCEPTS[G.concept], ms=G.missions, last=ms.length-1;
+  const P=[];
+  // cover + guide
+  P.push(page(`<div class="k">${esc(c.name)} game · age ${esc(G.age)} · ${G.duration} minutes</div><h1>${esc(G.title||"Untitled adventure")}</h1>
+  <p>${esc(G.stakes)}</p>
+  <h3>Before the lesson</h3><ol>
+   <li>Print and cut out the cards. Use a different paper colour for each team if you can.</li>
+   <li>Prepare ${ms.length} envelopes per team, labelled with the labels in this pack, and put each mission sheet and its cards in the matching envelope.</li>
+   <li>Keep envelopes 2–${ms.length} with you. You are the Checkpoint.</li>
+   <li>Hide anything that needs hiding, and prepare the prize box (${esc(G.prize||"prize")}). If you use a padlock, set it to <b>${esc(ms[last].code)}</b>.</li>
+   <li>Put ${G.hintsPerTeam} hint tokens and a mission log on each team's table.</li></ol>
+  <h3>Running the game</h3><table>
+   <tr><td>0–5 min</td><td>Hand out the word cards. Students find their teams.</td></tr>
+   <tr><td>5–8 min</td><td>Read the letter. Start the clock. Give out Envelope 1.</td></tr>
+   <tr><td>Play</td><td>Teams bring each code to you (or the Checkpoint page). Correct → next envelope. Wrong → a forfeit card.${G.challengesOn?" Call a challenge after Mission 1 and after Mission 3.":""}</td></tr>
+   <tr><td>Finale</td><td>The first team to finish opens the prize and shares it with everyone. Other teams may still finish.</td></tr>
+   <tr><td>+10 min</td><td>Debrief, then hand out the certificates.</td></tr></table>
+  <h3>Rules to read out</h3><ul><li>Everything you need is in your envelope. Don't touch anything else unless a clue sends you there.</li><li>Only one person per team comes to the Checkpoint.</li><li>Each team has ${G.hintsPerTeam} hint tokens.</li><li>A wrong code means a forfeit, so check before you come!</li>${G.challengesOn?"<li>Challenges: the teacher reads every card out. No team is hit twice in a row, the last-placed team is safe, and there are no sabotages in the last 5 minutes.</li>":""}</ul>
+  <h3>Debrief questions</h3><ul><li>Which mission was hardest? What helped you solve it?</li><li>What did you learn that was new?</li><li>Who in your team had a great idea?</li><li>What would you do differently next time?</li></ul>`));
+  // key
+  P.push(page(`<div class="k">Teacher only</div><h2>Answer key</h2><table><tr><th>#</th><th>Mission</th><th>Code / answer</th><th>Explanation</th></tr>
+  ${ms.map((m,i)=>`<tr><td>${i===last?"★":i+1}</td><td>${esc(m.name)}</td><td><b>${esc(m.code)||"(not checked)"}</b></td><td>${esc(m.solution)}</td></tr>`).join("")}</table>
+  <h3>Teams</h3><table><tr><th>Team</th><th>Words</th></tr>${G.teams.map(t=>`<tr><td>${esc(t.name)}</td><td>${esc(t.words.filter(w=>w.trim()).join(", "))}</td></tr>`).join("")}</table>`));
+  // letter
+  if(lines(G.letter).length) P.push(page(`<div class="k">A message for</div><h2>${esc(G.className)}</h2><div class="letter">${lines(G.letter).map(p=>`<p>${esc(p)}</p>`).join("")}<p>${esc(G.signoff)}<br><b>${esc(G.villain)}</b></p></div>`));
+  // team cards
+  const wc = G.teams.flatMap(t=>t.words.filter(w=>w.trim()).map(w=>`<div class="word" style="flex-direction:column">${esc(w)}<span class="small" style="font-weight:normal;font-size:7.5pt;margin-top:2mm">${esc(G.teamRule)}</span></div>`));
+  P.push(page(`<div class="k">Cut out · one card per student</div><h2>Find your team</h2><div class="grid g4">${wc.join("")}</div>`));
+  // missions
+  ms.forEach((m,i)=>{
+    const T=TYPES[m.type]||TYPES.other;
+    const lab = i===last?"Final step":"Envelope "+(i+1);
+    let body="";
+    if(m.type==="cipher") body = cipherHTML(m.content);
+    else if(T.hasProblems) body = lines(m.content).map((p,j)=>`<div class="prob"><b>${j+1}</b><div>${esc(p)}</div><div class="ab"></div></div>`).join("");
+    else if(["match","clue","map","odd","combo"].includes(m.type)) body = `<ol class="content">${lines(m.content).map(p=>`<li><p>${esc(p)}</p></li>`).join("")}</ol>`;
+    else if(m.type==="sort") body = `<table>${"<tr>"+lines(m.content).map(p=>`<th>${esc(p)}</th>`).join("")+"</tr><tr>"+lines(m.content).map(()=>`<td style="height:70mm"></td>`).join("")+"</tr>"}</table>`;
+    else body = `<div class="content">${lines(m.content).map(p=>`<p>${esc(p)}</p>`).join("")}</div>`;
+    const answerLabel = (i===last && G.concept==="mystery") ? "" : (m.type==="sort"?"Count them:":"Your code:");
+    const tail = (i===last && G.concept==="mystery") ? `<h3>Who did it? ______________________</h3><p>Because: ____________________________________________</p>` : codeBoxes(m.code, answerLabel);
+    P.push(page(`<div class="k">${lab}</div><h2>${esc(m.name)}</h2><p><i>${esc(m.intro)}</i></p>${body}${tail}`));
+    const cards = lines(m.cards).map(t=>`<div class="word" style="font-size:13pt">${esc(t)}</div>`);
+    if(cards.length) P.push(page(`<div class="k">${lab} · cut out</div><h2>${esc(m.name)}: cards</h2>${cardsGrid(cards, cards.length>9?4:3)}`));
+  });
+  // hints
+  const hints = ms.flatMap((m,i)=>[m.hint1,m.hint2].map((h,j)=>h.trim()?`<div class="cardt">${esc(m.name)} · hint ${j+1}</div>${esc(h)}`:null).filter(Boolean));
+  const tokens = Array.from({length:Math.max(1,G.teams.length)*G.hintsPerTeam},()=>`<b>HINT</b><br><span class="small">token</span>`);
+  P.push(page(`<div class="k">Teacher keeps these</div><h2>Hint cards</h2>${cardsGrid(hints,3)}<h3>Hint tokens (${G.hintsPerTeam} per team)</h3>${cardsGrid(tokens,5)}`));
+  // forfeits + challenges
+  P.push(page(`<div class="k">Cut out</div><h2>Forfeit cards</h2><p class="small">Wrong code? The team draws a card and does it before trying again.</p>${cardsGrid(lines(G.forfeits).map(f=>`<div class="cardt">Wrong code!</div>${esc(f)}`),4)}`));
+  if(G.challengesOn){
+    const sab = lines(G.sabotages).map(l=>{ const [n,...e]=l.split("|"); return `<div class="cardt">Reward card</div><b>${esc(n.trim())}</b><br>${esc(e.join("|").trim())}`; });
+    P.push(page(`<div class="k">Teacher</div><h2>Challenges</h2><ol>${lines(G.challenges).map(x=>`<li><p>${esc(x)}</p></li>`).join("")}</ol><p class="small">The first team to finish a challenge draws one reward card. The teacher reads every card out. No team can be hit twice in a row, the last-placed team is safe, and there are no sabotages in the last 5 minutes.</p><h3>Reward cards (cut out)</h3>${cardsGrid(sab,4)}`));
+  }
+  // labels + log
+  const labels = ms.map((m,i)=>`<b>${i===last?"★":i+1}. ${esc(m.name)}</b><br><span class="small">Team: _______________</span>`);
+  P.push(page(`<div class="k">Cut out</div><h2>Envelope labels</h2>${cardsGrid([...labels,...labels],3)}
+   <h3>Mission log · Team _______________</h3><table><tr><th>Mission</th><th>Our code</th><th>Time</th></tr>${ms.map(m=>`<tr><td>${esc(m.name)}</td><td style="width:40mm"></td><td style="width:30mm"></td></tr>`).join("")}</table><p class="small">Hint tokens used: ☐ ☐ ☐</p>`));
+  // certificates
+  const cert = `<div class="cert"><div class="k">Certificate</div><h1>${esc(G.title||"Adventure")}</h1><p>This certifies that team</p><div class="line"></div><p>${G.concept==="mystery"?"solved the mystery":G.concept==="hero"?"completed the rescue":G.concept==="treasure"?"found the treasure":"escaped"} in ______ minutes.</p><p class="small" style="margin-top:8mm">Signed: ______________________</p></div>`;
+  P.push(page(cert+cert));
+  return P.join("");
+}
+function printPack(){ $("#print").innerHTML = buildPack(); setTimeout(()=>window.print(), 50); }
+
+/* ---------- checkpoint export ---------- */
+function checkpointConfig(){
+  const steps=[]; let carry=[];
+  G.missions.forEach(m=>{
+    const own=[m.hint1,m.hint2].filter(h=>h.trim());
+    if(!m.code.trim()){ carry=carry.concat(own.map(h=>m.name+": "+h)); return; }
+    const all = carry.length ? carry.concat(own.map(h=>m.name+": "+h)) : own;
+    steps.push({chip:String(steps.length+1), name:m.name, code:m.code, reward:m.reward||"Well done! Collect your next envelope.", hints:all.length?all:["Read the instructions again, slowly."]});
+    carry=[];
+  });
+  if(steps.length) steps[steps.length-1].chip="★";
+  return {title:G.title||"Escape adventure", minutes:G.duration, villain:G.villain, signoff:G.signoff, letter:lines(G.letter), hintsPerTeam:G.hintsPerTeam,
+    teams:G.teams.map((t,i)=>({name:t.name||("Team "+(i+1)), color:COLORS[i%COLORS.length]})), steps, forfeits:lines(G.forfeits).length?lines(G.forfeits):["Do 10 star jumps."],
+    winText:G.concept==="mystery"?"solved the mystery!":G.concept==="hero"?"completed the rescue!":G.concept==="treasure"?"found the treasure!":"escaped!"};
+}
+function exportCheckpoint(){
+  const cfg = JSON.stringify(checkpointConfig()).replace(/</g,"\\u003c");
+  const html = "<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>"+esc(G.title||"Checkpoint")+" · Checkpoint</title><style>"+CP_CSS+"</style></head><body><div id='app'></div><scr"+"ipt>const GAME="+cfg+";("+checkpointApp.toString()+")(GAME);</scr"+"ipt></body></html>";
+  download((G.title||"Adventure").replace(/[^\w\- ]+/g,"").trim().replace(/\s+/g,"_")+"_Checkpoint.html", html, "text/html");
+}
+function download(name, text, type){
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},500);
+}
+
+const CP_CSS = `*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:#13294b;color:#fff;min-height:100vh}
+.w{max-width:1280px;margin:0 auto;padding:22px 26px}button{font:inherit;cursor:pointer;border:0;border-radius:12px}
+.btn{background:#ffcf5a;color:#1b1300;font-weight:800;padding:12px 22px;font-size:18px}.gh{background:transparent;color:#dce9f7;border:2px solid rgba(255,255,255,.25);padding:8px 14px;font-size:15px}
+.c{min-height:85vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center}
+.t{font-size:clamp(36px,6vw,72px);font-weight:800;margin:0}.box{background:rgba(255,255,255,.08);border-radius:18px;padding:18px 22px;text-align:left;min-width:min(560px,92vw)}
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.pick label{display:flex;gap:8px;align-items:center;background:rgba(255,255,255,.06);padding:8px 10px;border-radius:10px;font-weight:700}
+.letter{background:#fff;color:#13294b;border-radius:18px;padding:28px 36px;max-width:820px;text-align:left;font-size:20px;line-height:1.55}
+.top{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;margin-bottom:18px}.nm{font-size:22px;font-weight:700}
+.tm{font-size:clamp(52px,8vw,100px);font-weight:800;font-variant-numeric:tabular-nums;background:rgba(0,0,0,.25);border-radius:20px;padding:6px 24px}.tm.low{color:#ff8a8a}
+.tools{justify-self:end;display:flex;gap:8px}.teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px}
+.team{background:rgba(255,255,255,.08);border-radius:18px;border-top:7px solid var(--c);padding:16px;display:flex;flex-direction:column;gap:12px}.team.done{outline:3px solid #ffcf5a}
+.team h3{margin:0;font-size:24px;display:flex;justify-content:space-between}.pl{background:#ffcf5a;color:#1b1300;border-radius:99px;padding:2px 10px;font-size:15px}
+.st{display:flex;gap:6px}.s{flex:1;height:42px;border-radius:10px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-weight:800;color:rgba(255,255,255,.5);border:2px solid transparent}
+.s.ok{background:#3ccf7f;color:#06301a}.s.now{border-color:#ffcf5a;color:#fff}.lab{font-size:14px;color:#cfe0f3;min-height:18px}
+.tr{display:flex;gap:8px}.tr .btn{flex:1;white-space:nowrap}.h{width:42px;height:42px;background:rgba(255,255,255,.1);color:#9fd3ff;font-weight:800}.h.u{opacity:.25}
+.m{position:fixed;inset:0;background:rgba(5,12,26,.8);display:flex;align-items:center;justify-content:center;padding:18px;z-index:5}
+.p{background:#f7fbff;color:#13294b;border-radius:22px;padding:24px 26px;width:min(620px,96vw);text-align:center;position:relative}.p h2{margin:0 0 6px;font-size:30px}
+.x{position:absolute;right:12px;top:10px;background:none;font-size:26px;color:#6b7c95}
+.e{font-size:48px;font-weight:800;letter-spacing:.2em;min-height:76px;border-radius:14px;background:#e5eef8;margin:12px 0;display:flex;align-items:center;justify-content:center;border:3px solid #c5d6ea}
+.pad{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.pad button{background:#13294b;color:#fff;font-weight:800;font-size:20px;padding:11px 0}.pad .n{background:#2e86c1}.pad .d{grid-column:span 2;background:#6b7c95}.pad .g{grid-column:span 3;background:#3ccf7f;color:#06301a}
+.r{font-size:21px;line-height:1.5}.big{display:block;font-size:46px;font-weight:800;margin:6px 0}.good .big{color:#1e8449}.bad .big{color:#2e86c1}
+.f{background:#fff3f3;border:2px dashed #e8505b;border-radius:14px;padding:14px;margin:12px 0;font-weight:800;font-size:22px;color:#9b2330}
+.hi{background:#eaf4fb;border-left:6px solid #2e86c1;border-radius:10px;padding:14px;text-align:left;font-size:21px;margin:12px 0}
+.cel{position:fixed;inset:0;z-index:6;background:rgba(5,12,26,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center}.cel h1{font-size:clamp(56px,10vw,120px);color:#ffcf5a;margin:0}.cel p{font-size:24px}
+.ft{margin-top:22px;text-align:center;color:rgba(220,233,247,.6);font-size:13px}.hid{display:none!important}
+@media(max-width:700px){.top{grid-template-columns:1fr}.tools{justify-self:center}.pad{grid-template-columns:repeat(5,1fr)}.pick{grid-template-columns:1fr}}`;
+
+/* The Checkpoint app. It is copied as text into the downloaded file, so it must not use anything outside itself. */
+function checkpointApp(GAME){
+  var KEY="checkpoint:"+GAME.title, S=null, tick=null, cur=null, buf="";
+  var app=document.getElementById("app");
+  function q(s){return document.querySelector(s);}
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function norm(c){return String(c).toUpperCase().replace(/[^A-Z0-9]/g,"");}
+  function fmt(ms){var n=ms<0;ms=Math.abs(ms);var t=Math.floor(ms/1000);return (n?"+":"")+String(Math.floor(t/60)).padStart(2,"0")+":"+String(t%60).padStart(2,"0");}
+  function ord(n){var s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+  function load(){try{return JSON.parse(localStorage.getItem(KEY));}catch(e){return null;}}
+  function setup(){
+    var sv=load();
+    app.innerHTML='<div class="w"><div class="c"><h1 class="t">'+esc(GAME.title)+'</h1><div class="box"><b>Which teams are playing?</b><div class="pick">'+
+      GAME.teams.map(function(t,i){return '<label><input type="checkbox" value="'+i+'" checked> <span style="width:12px;height:12px;border-radius:50%;background:'+t.color+'"></span>'+esc(t.name)+'</label>';}).join("")+
+      '</div><label>Minutes: <input id="mins" type="number" value="'+GAME.minutes+'" style="width:80px;font:inherit;padding:6px;border-radius:8px;border:0"></label><div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="go">Next →</button>'+
+      (sv&&sv.started?'<button class="gh" id="res">Resume saved game</button>':'')+'</div></div></div></div>';
+    q("#go").onclick=function(){
+      var p=[].slice.call(document.querySelectorAll(".pick input:checked")).map(function(i){return +i.value;}); if(!p.length)return;
+      S={teams:p.map(function(i){return {i:i,step:0,hints:GAME.hintsPerTeam,done:null,shown:{}};}),duration:Math.max(1,+q("#mins").value||GAME.minutes)*60000,elapsed:0,running:false,started:false,places:0};
+      intro();
+    };
+    if(q("#res")) q("#res").onclick=function(){S=sv;game();};
+  }
+  function intro(){
+    app.innerHTML='<div class="w"><div class="c">'+(GAME.letter.length?'<div class="letter">'+GAME.letter.map(function(p){return '<p>'+esc(p)+'</p>';}).join("")+'<p>'+esc(GAME.signoff)+'<br><b>'+esc(GAME.villain)+'</b></p></div>':'<h1 class="t">'+esc(GAME.title)+'</h1>')+'<button class="btn" id="st" style="font-size:22px">Start the clock</button></div></div>';
+    q("#st").onclick=function(){S.started=true;S.running=true;save();game();};
+  }
+  function game(){
+    app.innerHTML='<div class="w"><div class="top"><div class="nm">'+esc(GAME.title)+'</div><div class="tm" id="tm"></div><div class="tools"><button class="gh" id="pa">Pause</button><button class="gh" id="ng">New game</button></div></div><div class="teams" id="teams"></div><p class="ft">Wrong code = draw a forfeit card. Each team has '+GAME.hintsPerTeam+' hints: tap a hint button to show a hint for the team\'s current mission.</p></div><div class="m hid" id="m"><div class="p" id="p"></div></div><div class="cel hid" id="cel"></div>';
+    q("#pa").onclick=function(){S.running=!S.running;save();draw();};
+    q("#ng").onclick=function(){modal('<h2>Start a new game?</h2><p class="r">Times and progress will be lost.</p><button class="btn" id="y">Yes</button> <button class="gh" style="color:#13294b" id="n">Cancel</button>');q("#y").onclick=function(){try{localStorage.removeItem(KEY);}catch(e){}location.reload();};q("#n").onclick=close;};
+    q("#m").onclick=function(e){if(e.target.id==="m")close();};
+    var last=Date.now(); clearInterval(tick);
+    tick=setInterval(function(){var n=Date.now();if(S.running)S.elapsed+=n-last;last=n;draw();if(Math.random()<.05)save();},250);
+    render(); draw();
+  }
+  function draw(){var l=S.duration-S.elapsed,t=q("#tm");if(!t)return;t.textContent=l>=0?fmt(l):"TIME! "+fmt(l);t.classList.toggle("low",l<60000);q("#pa").textContent=S.running?"Pause":"Resume";}
+  function render(){
+    q("#teams").innerHTML=S.teams.map(function(t,k){var T=GAME.teams[t.i];
+      var chips=GAME.steps.map(function(s,j){return '<div class="s '+(j<t.step?'ok':'')+' '+(j===t.step&&!t.done?'now':'')+'">'+(j<t.step?'✓':esc(s.chip))+'</div>';}).join("");
+      var hb="";for(var h=0;h<GAME.hintsPerTeam;h++)hb+='<button class="h '+(h>=t.hints?'u':'')+'" data-h="'+k+'">?</button>';
+      return '<div class="team '+(t.done!=null?'done':'')+'" style="--c:'+T.color+'"><h3>'+esc(T.name)+(t.place?'<span class="pl">'+ord(t.place)+'</span>':'')+'</h3><div class="st">'+chips+'</div><div class="lab">'+(t.done!=null?'Finished in '+fmt(t.done):'Now: '+esc(GAME.steps[t.step].name))+'</div><div class="tr">'+(t.done!=null?'':'<button class="btn" data-c="'+k+'">Enter code</button>')+hb+'</div></div>';}).join("");
+    [].forEach.call(document.querySelectorAll("[data-c]"),function(b){b.onclick=function(){entry(+b.dataset.c);};});
+    [].forEach.call(document.querySelectorAll("[data-h]"),function(b){b.onclick=function(){hint(+b.dataset.h);};});
+  }
+  function modal(h){q("#p").innerHTML=h;q("#m").classList.remove("hid");}
+  function close(){q("#m").classList.add("hid");cur=null;}
+  function entry(k){cur=k;buf="";var t=S.teams[k],T=GAME.teams[t.i],s=GAME.steps[t.step];
+    var keys="1234567890".split("").map(function(d){return '<button class="n" data-k="'+d+'">'+d+'</button>';}).join("")+"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(function(c){return '<button data-k="'+c+'">'+c+'</button>';}).join("");
+    modal('<button class="x" id="cx">×</button><div style="color:'+T.color+';font-weight:800">'+esc(T.name)+'</div><h2>'+esc(s.name)+'</h2><div class="e" id="e">&nbsp;</div><div class="pad">'+keys+'<button class="d" data-k="DEL">⌫</button><button class="g" data-k="GO">Check ✓</button></div>');
+    q("#cx").onclick=close;[].forEach.call(document.querySelectorAll(".pad button"),function(b){b.onclick=function(){press(b.dataset.k);};});}
+  function press(c){if(c==="DEL")buf=buf.slice(0,-1);else if(c==="GO")return check();else if(buf.length<20)buf+=c;var e=q("#e");if(e)e.innerHTML=buf?esc(buf):"&nbsp;";}
+  document.addEventListener("keydown",function(e){if(cur===null||!q("#e"))return;if(e.key==="Enter")press("GO");else if(e.key==="Backspace")press("DEL");else if(e.key==="Escape")close();else if(/^[a-z0-9]$/i.test(e.key))press(e.key.toUpperCase());});
+  function check(){var t=S.teams[cur],s=GAME.steps[t.step];if(!buf)return;
+    if(norm(buf)===norm(s.code)){t.step++;
+      if(t.step>=GAME.steps.length){t.done=S.elapsed;t.place=++S.places;save();render();close();
+        var T=GAME.teams[t.i],c=q("#cel");c.innerHTML='<div>'+ord(t.place)+' team to finish</div><h1>WELL DONE!</h1><p><b style="color:'+T.color+'">'+esc(T.name)+'</b> '+esc(GAME.winText)+'</p><p>Time: '+fmt(t.done)+'</p><button class="btn" id="bk">Back to the game</button>';c.classList.remove("hid");q("#bk").onclick=function(){c.classList.add("hid");};return;}
+      modal('<div class="r good"><span class="big">Correct! ✓</span>'+esc(s.reward)+'</div><button class="btn" id="ok">OK</button>');q("#ok").onclick=close;
+    } else {var f=GAME.forfeits[Math.floor(Math.random()*GAME.forfeits.length)];
+      modal('<div class="r bad"><span class="big">Wrong code!</span>Before you try again, your team must:</div><div class="f">'+esc(f)+'</div><button class="btn" id="ok">Done it!</button>');q("#ok").onclick=close;}
+    save();render();}
+  function hint(k){var t=S.teams[k],T=GAME.teams[t.i];if(t.done!=null)return;var s=GAME.steps[t.step];
+    if(t.hints<=0){modal('<h2>No hints left!</h2><p class="r">'+esc(T.name)+' has used all its hints.</p><button class="btn" id="ok">OK</button>');q("#ok").onclick=close;return;}
+    var n=(t.shown&&t.shown[t.step])||0, h=s.hints[Math.min(n,s.hints.length-1)];
+    modal('<div style="color:'+T.color+';font-weight:800">'+esc(T.name)+' · hint</div><h2>'+esc(s.name)+'</h2><div class="hi" id="ht" style="filter:blur(9px)">'+esc(h)+'</div><p>This uses 1 hint.</p><div id="hb"><button class="btn" id="use">Use it</button> <button class="gh" style="color:#13294b" id="cn">Cancel</button></div>');
+    q("#cn").onclick=close;q("#use").onclick=function(){t.hints--;t.shown=t.shown||{};t.shown[t.step]=n+1;q("#ht").style.filter="none";q("#hb").innerHTML='<button class="btn" id="ok">Got it</button>';q("#ok").onclick=close;save();render();};}
+  setup();
+}
+
+/* ---------- top buttons ---------- */
+$("#bSave").onclick=()=>download((G.title||"adventure").replace(/[^\w\- ]+/g,"").trim().replace(/\s+/g,"_")+".json", JSON.stringify(G,null,2), "application/json");
+$("#bOpen").onclick=()=>$("#fileIn").click();
+$("#fileIn").onchange=e=>{ const f=e.target.files[0]; if(!f) return; f.text().then(t=>{ try{ const g=JSON.parse(t); G=Object.assign(blankGame(), g); save(); step=0; render(); }catch(err){ $("#saved").textContent="That file could not be opened."; } }); e.target.value=""; };
+$("#bExample").onclick=()=>{ if(!sure($("#bExample"),"Replace current work?")) return; G=JSON.parse(JSON.stringify(EXAMPLE)); save(); step=0; render(); };
+$("#bNew").onclick=()=>{ if(!sure($("#bNew"),"Clear and start new?")) return; G=blankGame(); save(); step=0; render(); };
+function sure(b,txt){ if(b.dataset.sure){ delete b.dataset.sure; b.textContent=b.dataset.orig; return true; } b.dataset.orig=b.textContent; b.dataset.sure="1"; b.textContent=txt; setTimeout(()=>{ if(b.dataset.sure){ delete b.dataset.sure; b.textContent=b.dataset.orig; } },3500); return false; }
+
+render();
+</script>
+</body>
+</html>
